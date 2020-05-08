@@ -4,6 +4,7 @@
 from __future__ import absolute_import, division, unicode_literals
 
 
+import traceback
 import uuid
 import json
 
@@ -85,14 +86,15 @@ class Monitor(xbmc.Monitor):
 
 class Service(Monitor):
 
-    _error_msg_ = "[{0.__class__.__name__}: {0}]"
+    _error_msg_ = "{0.__class__.__name__}: {0}"
+    _request_error_msg_ = "error processing request: [{}]"
 
     def __init__(self, sender=None):
         self.sender = sender or getAddonId()
         self._methods_ = {}
 
     def log(self, msg, level=xbmc.LOGERROR):
-        log(msg, sender=self.sender, level=level)
+        log("service: {}".format(msg), sender=self.sender, level=level)
 
     def serve(self):
         for name in dir(self):
@@ -114,9 +116,8 @@ class Service(Monitor):
             else:
                 response = {"result": method(*args, **kwargs)}
         except Exception as error:
-            message = self._error_msg_.format(error)
-            self.log("service: error processing request {}".format(message))
-            response = {"error": {"message": message}}
+            self.log(self._request_error_msg_.format(self._error_msg_.format(error)))
+            response = {"error": {"traceback": traceback.format_exc()}}
         finally:
             return response
 
@@ -135,8 +136,11 @@ class RequestError(Exception):
     _unknown_msg_ = "unknown error"
 
     def __init__(self, error=None):
-        message = error["message"] if error else self._unknown_msg_
-        super(RequestError, self).__init__(message)
+        super(RequestError, self).__init__(
+            error["traceback"] if error else self._unknown_msg_)
+
+    def __str__(self):
+        return "remote traceback: {}".format(super(RequestError, self).__str__())
 
 
 def unpack(response):
