@@ -93,18 +93,24 @@ class Service(Monitor):
         self.sender = sender or getAddonId()
         self._methods_ = {}
 
-    def log(self, msg, level=xbmc.LOGERROR):
-        log("service: {}".format(msg), sender=self.sender, level=level)
-
-    def serve(self):
-        for name in dir(self):
+    def _setup_(self, value, key=None):
+        for name in dir(value):
             if not name.startswith("_"):
-                method = getattr(self, name)
+                method = getattr(value, name)
                 if callable(method) and getattr(method, "__public__", False):
-                    self._methods_[name] = method
+                    name = ".".join((key, name)) if key else name
+                    yield name, method
+
+    def serve(self, **kwargs):
+        self._methods_.update(self._setup_(self))
+        for key, value in kwargs.items():
+            self._methods_.update(self._setup_(value, key))
         while not self.waitForAbort():
             pass
-        self._methods_.clear() # clear circular references
+        self._methods_.clear() # clear possible circular references
+
+    def log(self, msg, level=xbmc.LOGERROR):
+        log("service: {}".format(msg), sender=self.sender, level=level)
 
     def execute(self, request):
         try:
