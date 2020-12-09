@@ -86,14 +86,8 @@ class Monitor(xbmc.Monitor):
 
 class Service(Monitor):
 
-    _error_msg_ = "{0.__class__.__name__}: {0}"
-    _request_error_msg_ = "error processing request: [{}]"
-
-    def __init__(self, sender=None):
-        self.sender = sender or getAddonId()
-        self._methods_ = {}
-
-    def _setup_(self, value, key=None):
+    @staticmethod
+    def _setup_(value, key=None):
         for name in dir(value):
             if not name.startswith("_"):
                 method = getattr(value, name)
@@ -101,13 +95,25 @@ class Service(Monitor):
                     name = ".".join((key, name)) if key else name
                     yield name, method
 
+    _error_msg_ = "{0.__class__.__name__}: {0}"
+    _request_error_msg_ = "error processing request: [{}]"
+
+    def __init__(self, sender=None):
+        self.sender = sender or getAddonId()
+        self._methods_ = {}
+
+    def serve_forever(self):
+        while not self.waitForAbort():
+            pass
+
     def serve(self, **kwargs):
         self._methods_.update(self._setup_(self))
         for key, value in kwargs.items():
             self._methods_.update(self._setup_(value, key))
-        while not self.waitForAbort():
-            pass
-        self._methods_.clear() # clear possible circular references
+        try:
+            self.serve_forever()
+        finally:
+            self._methods_.clear() # clear possible circular references
 
     def log(self, msg, level=xbmc.LOGERROR):
         log("service: {}".format(msg), sender=self.sender, level=level)
