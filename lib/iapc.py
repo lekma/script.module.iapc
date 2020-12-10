@@ -4,11 +4,12 @@
 from __future__ import absolute_import, division, unicode_literals
 
 
+import sys
 import traceback
 import uuid
 import json
 
-from six import raise_from
+from six import u, raise_from
 from kodi_six import xbmc, xbmcaddon
 
 
@@ -23,6 +24,17 @@ def getAddonId():
 
 def log(msg, sender=None, level=xbmc.LOGNOTICE):
     xbmc.log("[{}] {}".format(sender or getAddonId(), msg), level=level)
+
+
+def formatException(limit=None):
+    try:
+        etype, value, tb = sys.exc_info()
+        lines = traceback.format_exception(etype, value, tb, limit)
+        lines, line = lines[:-1], lines[-1]
+        lines.append(u(line).encode("utf-8"))
+        return "".join(line.decode("utf-8") for line in lines)
+    finally:
+        etype = value = tb = None
 
 
 # ------------------------------------------------------------------------------
@@ -129,7 +141,7 @@ class Service(Monitor):
                 response = {"result": method(*args, **kwargs)}
         except Exception as error:
             self.log(self._request_error_msg_.format(self._error_msg_.format(error)))
-            response = {"error": {"traceback": traceback.format_exc()}}
+            response = {"error": {"traceback": formatException()}}
         finally:
             return response
 
@@ -149,10 +161,11 @@ class RequestError(Exception):
 
     def __init__(self, error=None):
         super(RequestError, self).__init__(
-            error["traceback"] if error else self._unknown_msg_)
+            error["traceback"].encode("utf-8") if error else self._unknown_msg_
+        )
 
     def __str__(self):
-        return "remote traceback: {}".format(super(RequestError, self).__str__())
+        return b"remote traceback: {}".format(super(RequestError, self).__str__())
 
 
 def unpack(response):
