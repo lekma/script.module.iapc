@@ -102,16 +102,16 @@ class Service(Monitor):
         self.sender = sender or getAddonId()
         self._methods_ = {}
 
-    def serve_forever(self):
-        while not self.waitForAbort():
+    def serve_forever(self, timeout):
+        while not self.waitForAbort(timeout):
             pass
 
-    def serve(self, **kwargs):
+    def serve(self, timeout=-1, **kwargs):
         self._methods_.update(self._setup_(self))
         for key, value in kwargs.items():
             self._methods_.update(self._setup_(value, key))
         try:
-            self.serve_forever()
+            self.serve_forever(timeout)
         finally:
             self._methods_.clear() # clear possible circular references
 
