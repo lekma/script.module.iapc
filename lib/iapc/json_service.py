@@ -4,76 +4,32 @@
 from __future__ import absolute_import, division, unicode_literals
 
 
-import sys
-import traceback
-import uuid
+__all__ = ["public", "Service", "Client"]
+
+
 import json
+import uuid
 
-from six import u, raise_from
-from kodi_six import xbmc, xbmcaddon
+from six import raise_from
+from kodi_six import xbmc
 
+from .tools import LOGERROR, log, getAddonId, formatException, JSONRPCError
+
+
+# public -----------------------------------------------------------------------
 
 def public(func):
     func.__public__ = True
     return func
 
 
-def getAddonId():
-    return xbmcaddon.Addon().getAddonInfo("id")
-
-
-def log(msg, sender=None, level=xbmc.LOGNOTICE):
-    xbmc.log("[{}] {}".format(sender or getAddonId(), msg), level=level)
-
-
-def formatException(limit=None):
-    try:
-        etype, value, tb = sys.exc_info()
-        lines = traceback.format_exception(etype, value, tb, limit)
-        lines, line = lines[:-1], lines[-1]
-        lines.append(u(line).encode("utf-8"))
-        return "".join(line.decode("utf-8") for line in lines)
-    finally:
-        etype = value = tb = None
-
-
 # ------------------------------------------------------------------------------
 # Monitor
 # ------------------------------------------------------------------------------
 
-class JSONRPCError(Exception):
-
-    _error_msg_ = "[{code}] {message}"
-    _data_msg_ = "in {method}."
-    _stack_msg_ = "{message} ({name})"
-
-    def __init__(self, error):
-        message = self._error_msg_.format(**error)
-        data = error.get("data")
-        if data:
-            message = " ".join((message, self.data(data)))
-        super(JSONRPCError, self).__init__(message)
-
-    def data(self, data):
-        message = self._data_msg_.format(**data)
-        try:
-            # unfortunately kodi doesn't respect its own specification :(
-            try:
-                _message_ = data["message"]
-            except KeyError:
-                _message_ = self.stack(data["stack"])
-            message = " ".join((_message_, message))
-        except KeyError:
-            pass
-        return message
-
-    def stack(self, stack):
-        return self._stack_msg_.format(**stack)
-
-
 class Monitor(xbmc.Monitor):
 
-    _request_ = {
+    __request__ = {
         "id": 1,
         "jsonrpc": "2.0",
         "method": "JSONRPC.NotifyAll"
@@ -87,7 +43,7 @@ class Monitor(xbmc.Monitor):
         }
         error = json.loads(
             xbmc.executeJSONRPC(
-                json.dumps(dict(self._request_, params=params)))).get("error")
+                json.dumps(dict(self.__request__, params=params)))).get("error")
         if error:
             raise JSONRPCError(error)
 
@@ -99,7 +55,7 @@ class Monitor(xbmc.Monitor):
 class Service(Monitor):
 
     @staticmethod
-    def _setup_(value, key=None):
+    def _setup(value, key=None):
         for name in dir(value):
             if not name.startswith("_"):
                 method = getattr(value, name)
@@ -107,40 +63,44 @@ class Service(Monitor):
                     name = ".".join((key, name)) if key else name
                     yield name, method
 
-    _error_msg_ = "{0.__class__.__name__}: {0}"
-    _request_error_msg_ = "error processing request: [{}]"
+    __request_error_msg__ = "error processing request: [{}]"
+    __error_msg__ = "{0.__class__.__name__}: {0}"
 
     def __init__(self, sender=None):
         self.sender = sender or getAddonId()
-        self._methods_ = {}
+        self.__methods__ = {}
 
     def serve_forever(self, timeout):
         while not self.waitForAbort(timeout):
             pass
 
     def serve(self, timeout=-1, **kwargs):
-        self._methods_.update(self._setup_(self))
+        self.__methods__.update(self._setup(self))
         for key, value in kwargs.items():
-            self._methods_.update(self._setup_(value, key))
+            self.__methods__.update(self._setup(value, key))
         try:
             self.serve_forever(timeout)
         finally:
-            self._methods_.clear() # clear possible circular references
+            self.__methods__.clear() # clear possible circular references
 
-    def log(self, msg, level=xbmc.LOGERROR):
+    def log(self, msg, level=LOGERROR):
         log("service: {}".format(msg), sender=self.sender, level=level)
 
     def execute(self, request):
         try:
             name, args, kwargs = json.loads(request)
             try:
-                method = self._methods_[name]
+                method = self.__methods__[name]
             except KeyError:
                 raise_from(AttributeError("no method '{0}'".format(name)), None)
             else:
                 response = {"result": method(*args, **kwargs)}
         except Exception as error:
-            self.log(self._request_error_msg_.format(self._error_msg_.format(error)))
+            self.log(
+                self.__request_error_msg__.format(
+                    self.__error_msg__.format(error)
+                )
+            )
             response = {"error": {"traceback": formatException()}}
         finally:
             return response
@@ -157,11 +117,11 @@ class Service(Monitor):
 
 class RequestError(Exception):
 
-    _unknown_msg_ = "unknown error"
+    __unknown_msg__ = "unknown error"
 
     def __init__(self, error=None):
         super(RequestError, self).__init__(
-            error["traceback"].encode("utf-8") if error else self._unknown_msg_
+            error["traceback"].encode("utf-8") if error else self.__unknown_msg__
         )
 
     def __str__(self):
@@ -187,7 +147,7 @@ class Request(Monitor):
     def execute(self, request):
         self.send(self.sender, self.message, request)
         while not self.ready:
-            if self.waitForAbort(0.1):
+            if self.waitForAbort(1):
                 break
         if isinstance(self.response, Exception):
             raise self.response
