@@ -43,6 +43,10 @@ class RequestHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         log(format % args)
 
+    def end_headers(self):
+        self.send_header("X-Clacks-Overhead", "GNU Terry Pratchett")
+        BaseHTTPRequestHandler.end_headers(self)
+
     def send_error(self, code, text=None, headers=None):
         try:
             message, _text_ = self.responses[code]
