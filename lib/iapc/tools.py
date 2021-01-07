@@ -24,7 +24,7 @@ def getAddonVersion():
 # logging (modified) -----------------------------------------------------------
 
 LOGDEBUG=xbmc.LOGDEBUG
-LOGINFO=xbmc.LOGNOTICE
+LOGINFO=xbmc.LOGINFO
 LOGWARNING=xbmc.LOGWARNING
 LOGERROR=xbmc.LOGERROR
 
@@ -95,4 +95,3 @@ class JSONRPCError(Exception):
 
     def stack(self, stack):
         return self.__stack_msg__.format(**stack)
-
