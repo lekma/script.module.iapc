@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import absolute_import, division, unicode_literals
+
 
 
 __all__ = ["public", "Service", "Client"]
@@ -76,7 +76,7 @@ class Service(Monitor):
 
     def serve(self, timeout=-1, **kwargs):
         self.__methods__.update(self._setup(self))
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             self.__methods__.update(self._setup(value, key))
         try:
             self.serve_forever(timeout)

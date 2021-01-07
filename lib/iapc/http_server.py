@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import absolute_import, division, unicode_literals
+
 
 
 __all__ = ["http", "Server"]
@@ -60,7 +60,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         log(self.__fmt_log__.format(code, message, _text_log_), level=LOGERROR)
         self.send_response(code, message)
         if headers:
-            for header in headers.items():
+            for header in list(headers.items()):
                 self.send_header(*header)
         content = None
         if code >= 200 and code not in (204, 205, 304):
@@ -84,7 +84,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         if content:
             content = self.send_content_headers(*content)
         if headers:
-            for header in headers.items():
+            for header in list(headers.items()):
                 self.send_header(*header)
         self.end_headers()
         return content
