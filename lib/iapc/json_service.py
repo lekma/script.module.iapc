@@ -87,6 +87,7 @@ class Service(Monitor):
         log("service: {}".format(msg), sender=self.sender, level=level)
 
     def execute(self, request):
+        response = {"result": None}
         try:
             name, args, kwargs = json.loads(request)
             try:
@@ -181,4 +182,3 @@ class Client(object):
 
     def __getattr__(self, name):
         return Attribute(self.sender, name)
-
