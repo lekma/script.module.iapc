@@ -1,15 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import absolute_import, division, unicode_literals
+from urllib.parse import parse_qsl
 
-
-from sys import exc_info
-from traceback import format_exception
-
-from six import u
-from six.moves.urllib.parse import parse_qsl
-from kodi_six import xbmcaddon, xbmc
+import xbmc, xbmcaddon
 
 
 # addon infos (modified) -------------------------------------------------------
@@ -23,26 +17,39 @@ def getAddonVersion():
 
 # logging (modified) -----------------------------------------------------------
 
-LOGDEBUG=xbmc.LOGDEBUG
-LOGINFO=xbmc.LOGNOTICE
-LOGWARNING=xbmc.LOGWARNING
-LOGERROR=xbmc.LOGERROR
-
-def log(message, sender=None, level=LOGINFO):
-    xbmc.log("[{}] {}".format(sender or getAddonId(), message), level=level)
+def log(message, level=xbmc.LOGINFO):
+    xbmc.log(message, level=level)
 
 
-# encode exception -------------------------------------------------------------
+class Logger(object):
 
-def formatException(limit=None):
-    try:
-        etype, value, tb = exc_info()
-        lines = format_exception(etype, value, tb, limit)
-        lines, line = lines[:-1], lines[-1]
-        lines.append(u(line).encode("utf-8"))
-        return "".join(line.decode("utf-8") for line in lines)
-    finally:
-        etype = value = tb = None
+    def __init__(self, id, component=""):
+        self.id = id
+        self.component = component
+        self.__prefix__ = (
+            f"{f'[{self.id}] ' if self.id else ''}"
+            f"{f'{self.component}: ' if self.component else ''}"
+        )
+
+    def __log__(self, message, level):
+        log(f"{self.__prefix__}{message}", level=level)
+
+    def debug(self, message):
+        self.__log__(message, xbmc.LOGDEBUG)
+
+    def info(self, message):
+        self.__log__(message, xbmc.LOGINFO)
+
+    def warning(self, message):
+        self.__log__(message, xbmc.LOGWARNING)
+
+    def error(self, message):
+        self.__log__(message, xbmc.LOGERROR)
+
+    def getLogger(self, component=""):
+        if component == self.component:
+            return self
+        return Logger(self.id, component=component)
 
 
 # parseQuery -------------------------------------------------------------------
@@ -63,36 +70,4 @@ def parseQuery(query):
     if query.startswith("?"):
         query = query[1:]
     return {k: parseValue(v) for k, v in parse_qsl(query)}
-
-
-# JSONRPCError -----------------------------------------------------------------
-
-class JSONRPCError(Exception):
-
-    __error_msg__ = "[{code}] {message}"
-    __data_msg__ = "in {method}."
-    __stack_msg__ = "{message} ({name})"
-
-    def __init__(self, error):
-        message = self.__error_msg__.format(**error)
-        data = error.get("data")
-        if data:
-            message = " ".join((message, self.data(data)))
-        super(JSONRPCError, self).__init__(message)
-
-    def data(self, data):
-        message = self.__data_msg__.format(**data)
-        try:
-            # unfortunately kodi doesn't respect its own specification :(
-            try:
-                _message_ = data["message"]
-            except KeyError:
-                _message_ = self.stack(data["stack"])
-            message = " ".join((_message_, message))
-        except KeyError:
-            pass
-        return message
-
-    def stack(self, stack):
-        return self.__stack_msg__.format(**stack)
 
