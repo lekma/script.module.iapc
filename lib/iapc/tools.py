@@ -68,7 +68,8 @@ def parseValue(value):
         return value
 
 def parseQuery(query):
-    if query.startswith("?"):
-        query = query[1:]
-    return {k: parseValue(v) for k, v in parse_qsl(query)}
+    return {
+        k: parseValue(v)
+        for k, v in parse_qsl(query[1:] if query.startswith("?") else query)
+    }
 
