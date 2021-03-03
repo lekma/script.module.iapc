@@ -17,11 +17,12 @@ def getAddonVersion():
 
 # logging (modified) -----------------------------------------------------------
 
-def log(message, level=xbmc.LOGINFO):
-    xbmc.log(message, level=level)
-
-
 class Logger(object):
+
+    DEBUG=xbmc.LOGDEBUG
+    INFO=xbmc.LOGINFO
+    WARNING=xbmc.LOGWARNING
+    ERROR=xbmc.LOGERROR
 
     def __init__(self, id, component=""):
         self.id = id
@@ -32,19 +33,19 @@ class Logger(object):
         )
 
     def __log__(self, message, level):
-        log(f"{self.__prefix__}{message}", level=level)
+        xbmc.log(f"{self.__prefix__}{message}", level=level)
 
     def debug(self, message):
-        self.__log__(message, xbmc.LOGDEBUG)
+        self.__log__(message, self.DEBUG)
 
     def info(self, message):
-        self.__log__(message, xbmc.LOGINFO)
+        self.__log__(message, self.INFO)
 
     def warning(self, message):
-        self.__log__(message, xbmc.LOGWARNING)
+        self.__log__(message, self.WARNING)
 
     def error(self, message):
-        self.__log__(message, xbmc.LOGERROR)
+        self.__log__(message, self.ERROR)
 
     def getLogger(self, component=""):
         if component == self.component:
