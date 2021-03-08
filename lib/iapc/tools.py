@@ -29,7 +29,7 @@ class Logger(object):
         self.component = component
         self.__prefix__ = (
             f"{f'[{self.id}] ' if self.id else ''}"
-            f"{f'{self.component}: ' if self.component else ''}"
+            f"{f'<{self.component}> ' if self.component else ''}"
         )
 
     def __log__(self, message, level):
