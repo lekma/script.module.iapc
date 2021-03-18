@@ -4,10 +4,10 @@
 __all__ = [
     "getAddonId", "getAddonName", "getAddonVersion",
     "getAddonPath", "getAddonIcon", "getAddonProfile",
-    "Logger",
     "getLanguage", "localizedString", "maybeLocalize",
-    "getMediaPath", "getMedia", "makeDataDir",
-    "openSettings", "getSetting", "setSetting"
+    "getMediaPath", "getMedia", "makeProfile",
+    "openSettings", "getSetting", "setSetting",
+    "Logger"
 ]
 
 
@@ -35,44 +35,6 @@ def getAddonIcon():
 
 def getAddonProfile():
     return xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
-
-
-# logging ----------------------------------------------------------------------
-
-class Logger(object):
-
-    DEBUG=xbmc.LOGDEBUG
-    INFO=xbmc.LOGINFO
-    WARNING=xbmc.LOGWARNING
-    ERROR=xbmc.LOGERROR
-
-    def __init__(self, id=None, component=""):
-        self.id = id or getAddonId()
-        self.component = component
-        self.__prefix__ = (
-            f"{f'[{self.id}] ' if self.id else ''}"
-            f"{f'<{self.component}> ' if self.component else ''}"
-        )
-
-    def __log__(self, message, level):
-        xbmc.log(f"{self.__prefix__}{message}", level=level)
-
-    def debug(self, message):
-        self.__log__(message, self.DEBUG)
-
-    def info(self, message):
-        self.__log__(message, self.INFO)
-
-    def warning(self, message):
-        self.__log__(message, self.WARNING)
-
-    def error(self, message):
-        self.__log__(message, self.ERROR)
-
-    def getLogger(self, component=""):
-        if component == self.component:
-            return self
-        return Logger(self.id, component=component)
 
 
 # misc utils -------------------------------------------------------------------
@@ -138,4 +100,43 @@ def setSetting(id, value, _type_=None):
     if _type_ is not None:
         return getattr(xbmcaddon.Addon(), __set_settings__[_type_])(id, value)
     return xbmcaddon.Addon().setSetting(id, value)
+
+
+# ------------------------------------------------------------------------------
+# Logger
+
+class Logger(object):
+
+    DEBUG=xbmc.LOGDEBUG
+    INFO=xbmc.LOGINFO
+    WARNING=xbmc.LOGWARNING
+    ERROR=xbmc.LOGERROR
+
+    def __init__(self, id=None, component=""):
+        self.id = id or getAddonId()
+        self.component = component
+        self.__prefix__ = (
+            f"{f'[{self.id}] ' if self.id else ''}"
+            f"{f'<{self.component}> ' if self.component else ''}"
+        )
+
+    def __log__(self, message, level):
+        xbmc.log(f"{self.__prefix__}{message}", level=level)
+
+    def debug(self, message):
+        self.__log__(message, self.DEBUG)
+
+    def info(self, message):
+        self.__log__(message, self.INFO)
+
+    def warning(self, message):
+        self.__log__(message, self.WARNING)
+
+    def error(self, message):
+        self.__log__(message, self.ERROR)
+
+    def getLogger(self, component=""):
+        if component == self.component:
+            return self
+        return Logger(self.id, component=component)
 
