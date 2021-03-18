@@ -9,7 +9,7 @@ __all__ = [
 
 import xbmcgui
 
-from .addon import __addon_name__,__addon_icon__,  maybeLocalize
+from .addon import getAddonName, getAddonIcon, maybeLocalize
 
 
 # getWindowId ------------------------------------------------------------------
@@ -24,7 +24,7 @@ ICONINFO = xbmcgui.NOTIFICATION_INFO
 ICONWARNING = xbmcgui.NOTIFICATION_WARNING
 ICONERROR = xbmcgui.NOTIFICATION_ERROR
 
-def notify(message, heading=__addon_name__, icon=__addon_icon__, time=5000):
+def notify(message, heading=getAddonName(), icon=getAddonIcon(), time=5000):
     xbmcgui.Dialog().notification(
         maybeLocalize(heading), maybeLocalize(message), icon=icon, time=time
     )
@@ -32,7 +32,7 @@ def notify(message, heading=__addon_name__, icon=__addon_icon__, time=5000):
 
 # select -----------------------------------------------------------------------
 
-def selectDialog(_list_, heading=__addon_name__, multi=False, **kwargs):
+def selectDialog(_list_, heading=getAddonName(), multi=False, **kwargs):
     if multi:
         return xbmcgui.Dialog().multiselect(
             maybeLocalize(heading), _list_, **kwargs
@@ -42,7 +42,7 @@ def selectDialog(_list_, heading=__addon_name__, multi=False, **kwargs):
 
 # input ------------------------------------------------------------------------
 
-def inputDialog(heading=__addon_name__, **kwargs):
+def inputDialog(heading=getAddonName(), **kwargs):
     return xbmcgui.Dialog().input(maybeLocalize(heading), **kwargs)
 
 

@@ -7,7 +7,7 @@ __all__ = ["dumpObject", "loadObject", "Persistent", "save"]
 from pathlib import Path
 from pickle import dump, load
 
-from .addon import __addon_profile__
+from .addon import getAddonProfile
 
 
 # pickle -----------------------------------------------------------------------
@@ -41,7 +41,7 @@ class Persistent(object):
     def __init_subclass__(cls, **kwargs):
         cls.__loading__ = False
         cls.__path__ = Path(
-            __addon_profile__,
+            getAddonProfile(),
             getattr(cls, "__pickle__", f"{cls.__name__.lower()}.pickle")
         )
         super().__init_subclass__(**kwargs)

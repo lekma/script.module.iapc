@@ -18,30 +18,23 @@ import xbmc, xbmcaddon, xbmcvfs
 
 # addon infos ------------------------------------------------------------------
 
-__addon_id__ = xbmcaddon.Addon().getAddonInfo("id")
-__addon_name__ = xbmcaddon.Addon().getAddonInfo("name")
-__addon_version__ = xbmcaddon.Addon().getAddonInfo("version")
-__addon_path__ = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("path"))
-__addon_icon__ = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("icon"))
-__addon_profile__ = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
-
 def getAddonId():
-    return __addon_id__
+    return xbmcaddon.Addon().getAddonInfo("id")
 
 def getAddonName():
-    return __addon_name__
+    return xbmcaddon.Addon().getAddonInfo("name")
 
 def getAddonVersion():
-    return __addon_version__
+    return xbmcaddon.Addon().getAddonInfo("version")
 
 def getAddonPath():
-    return __addon_path__
+    return xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("path"))
 
 def getAddonIcon():
-    return __addon_icon__
+    return xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("icon"))
 
 def getAddonProfile():
-    return __addon_profile__
+    return xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
 
 
 # logging ----------------------------------------------------------------------
@@ -54,7 +47,7 @@ class Logger(object):
     ERROR=xbmc.LOGERROR
 
     def __init__(self, id=None, component=""):
-        self.id = id or __addon_id__
+        self.id = id or getAddonId()
         self.component = component
         self.__prefix__ = (
             f"{f'[{self.id}] ' if self.id else ''}"
@@ -100,7 +93,7 @@ def maybeLocalize(value):
     return value
 
 
-__media_path__ = join(__addon_path__, "resources", "media")
+__media_path__ = join(getAddonPath(), "resources", "media")
 
 def getMediaPath(*args):
     return join(__media_path__, *args)
@@ -110,9 +103,9 @@ def getMedia(name, ext="png"):
     return getMediaPath(f"{name}.{ext}")
 
 
-def makeDataDir():
-    if not xbmcvfs.exists(__addon_profile__):
-        xbmcvfs.mkdirs(__addon_profile__)
+def makeProfile():
+    if not xbmcvfs.exists(profile := getAddonProfile()):
+        xbmcvfs.mkdirs(profile)
 
 
 # settings ---------------------------------------------------------------------
