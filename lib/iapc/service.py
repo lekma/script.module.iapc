@@ -8,8 +8,21 @@ from json import loads
 from traceback import format_exc
 from uuid import uuid4
 
-from .jsonrpc import Monitor
-from .tools import Logger, getAddonId
+import xbmc
+
+from .tools import Logger, getAddonId, executeJSONRPC
+
+
+# ------------------------------------------------------------------------------
+# Monitor
+
+class Monitor(xbmc.Monitor):
+
+    @staticmethod
+    def send(sender, message, data):
+        executeJSONRPC(
+            "JSONRPC.NotifyAll", sender=sender, message=message, data=data
+        )
 
 
 # public -----------------------------------------------------------------------
