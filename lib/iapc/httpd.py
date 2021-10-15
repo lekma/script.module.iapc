@@ -34,7 +34,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("X-Clacks-Overhead", "GNU Terry Pratchett")
-        super().end_headers()
+        super(RequestHandler, self).end_headers()
 
     def send_response(self, code, message=None, explain=None):
         if isinstance(code, HTTPStatus):
@@ -130,12 +130,12 @@ class Server(HTTPServer):
         self.timeout = None if timeout < 0 else timeout
         self.methods = {k: v for k, v in self.__methods__(self)}
         RequestHandler.server_version = f"{id}/{getAddonVersion()}"
-        super().__init__(self.__localhost__(), RequestHandler)
+        super(Server, self).__init__(self.__localhost__(), RequestHandler)
         self.logger.info(f"started on: {self.server_address}")
 
     def server_close(self):
         self.socket.shutdown(SHUT_RDWR)
-        super().server_close()
+        super(Server, self).server_close()
         self.methods.clear()
         self.logger.info("stopped")
 

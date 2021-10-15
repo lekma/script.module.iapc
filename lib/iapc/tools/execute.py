@@ -26,7 +26,7 @@ class JSONRPCError(Exception):
         message = f"[{error['code']}] {error['message']}".rstrip(".")
         if (data := error.get("data")):
             message = f"{message} {self.__data__(data)}"
-        super().__init__(message)
+        super(JSONRPCError, self).__init__(message)
 
     def __data__(self, data):
         message = f"in {data['method']}"

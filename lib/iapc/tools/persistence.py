@@ -44,11 +44,11 @@ class Persistent(object):
             getAddonProfile(),
             getattr(cls, "__pickle__", f"{cls.__name__.lower()}.pickle")
         )
-        super().__init_subclass__(**kwargs)
+        super(Persistent, cls).__init_subclass__(**kwargs)
 
     def __new__(cls, *args, **kwargs):
         if not cls.__path__.exists() or cls.__loading__:
-            return super().__new__(cls, *args, **kwargs)
+            return super(Persistent, cls).__new__(cls, *args, **kwargs)
         cls.__loading__ = True
         try:
             with cls.__path__.open("rb") as f:
@@ -58,7 +58,7 @@ class Persistent(object):
 
     def __init__(self, *args, **kwargs):
         if not self.__path__.exists():
-            super().__init__(*args, **kwargs)
+            super(Persistent, self).__init__(*args, **kwargs)
 
     def __save__(self):
         with self.__path__.open("wb+") as f:

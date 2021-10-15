@@ -89,7 +89,7 @@ class Service(Monitor):
 class RequestError(Exception):
 
     def __init__(self, message="unknown request error"):
-        super().__init__(message)
+        super(RequestError, self).__init__(message)
 
 
 class Request(Monitor):

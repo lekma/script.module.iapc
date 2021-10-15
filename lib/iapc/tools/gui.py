@@ -57,11 +57,11 @@ def contextMenu(_list_):
 class ListItem(xbmcgui.ListItem):
 
     def __new__(cls, label, path, **kwargs):
-        return super().__new__(cls, label=label, path=path)
+        return super(ListItem, cls).__new__(cls, label=label, path=path)
 
     def __init__(self, label, path, isFolder=False, isPlayable=True,
                  infos=None, streamInfos=None, contextMenus=None, **art):
-        super().__init__(label=label, path=path)
+        super(ListItem, self).__init__(label=label, path=path)
         self.setIsFolder(isFolder)
         self.setIsPlayable(False if isFolder else isPlayable)
         if infos:
@@ -76,7 +76,7 @@ class ListItem(xbmcgui.ListItem):
             self.setArt(art)
 
     def setIsFolder(self, isFolder):
-        super().setIsFolder(isFolder)
+        super(ListItem, self).setIsFolder(isFolder)
         #self.setProperty("IsFolder", str(isFolder).lower())
         self.isFolder = isFolder
 

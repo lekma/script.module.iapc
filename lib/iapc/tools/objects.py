@@ -27,7 +27,7 @@ class Type(type):
         for _type_, _func_ in cls.__transform__.items():
             for _name_ in namespace.pop(_type_, set()):
                 namespace[_name_] = __property__(_name_, _func_)
-        return super().__new__(cls, name, bases, namespace, **kwargs)
+        return super(Type, cls).__new__(cls, name, bases, namespace, **kwargs)
 
 
 # ------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ class Object(object, metaclass=Type):
         if isinstance(data, dict):
             if not data:
                 return None
-            return super().__new__(cls)
+            return super(Object, cls).__new__(cls)
         return data
 
     def __init__(self, data):
@@ -71,7 +71,7 @@ class List(list):
     __ctor__ = Object
 
     def __init__(self, items, category=None, content="videos"):
-        super().__init__(self.__ctor__(item) for item in items)
+        super(List, self).__init__(self.__ctor__(item) for item in items)
         self.category = category
         self.content = content
 
