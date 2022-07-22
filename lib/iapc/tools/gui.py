@@ -3,7 +3,8 @@
 
 __all__ = [
     "getWindowId", "ICONINFO", "ICONWARNING", "ICONERROR", "notify",
-    "selectDialog", "inputDialog", "contextMenu", "ListItem"
+    "selectDialog", "inputDialog", "contextMenu", "browseDialog", "browseFiles",
+    "ListItem"
 ]
 
 
@@ -50,6 +51,17 @@ def inputDialog(heading=getAddonName(), **kwargs):
 
 def contextMenu(_list_):
     return xbmcgui.Dialog().contextmenu(_list_)
+
+
+# browse -----------------------------------------------------------------------
+
+def browseDialog(_type_, heading=getAddonName(), source="", multi=False, **kwargs):
+    return xbmcgui.Dialog().browse(
+        _type_, maybeLocalize(heading), source, enableMultiple=multi, **kwargs
+    )
+
+def browseFiles(**kwargs):
+    return browseDialog(1, **kwargs)
 
 
 # listitem ---------------------------------------------------------------------
