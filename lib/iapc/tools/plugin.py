@@ -75,9 +75,9 @@ class Plugin(object):
             raise
         return True
 
-    def addItems(self, items, *args):
+    def addItems(self, items, *args, **kwargs):
         if isinstance(items, List):
-            items = items.getItems(self.url, *args)
+            items = items.getItems(self.url, *args, **kwargs)
         if (
             not xbmcplugin.addDirectoryItems(
                 self.__handle__, [item.asItem() for item in items if item]
@@ -86,7 +86,7 @@ class Plugin(object):
             raise
         return True
 
-    def addDirectory(self, items, *args):
+    def addDirectory(self, items, *args, **kwargs):
         if isinstance(items, List):
             if (category := items.category):
                 self.__category__ = (
@@ -95,7 +95,7 @@ class Plugin(object):
                 )
             if (content := items.content):
                 self.__content__ = content
-        return self.addItems(items, *args)
+        return self.addItems(items, *args, **kwargs)
 
     def endDirectory(self, success):
         if success:

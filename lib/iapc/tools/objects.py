@@ -37,15 +37,19 @@ class Object(object, metaclass=Type):
 
     __slots__ = {"__data__"}
 
-    def __new__(cls, data):
+    def __new__(cls, data, **kwargs):
         if isinstance(data, dict):
             if not data:
                 return None
             return super(Object, cls).__new__(cls)
         return data
 
-    def __init__(self, data):
-        self.__data__ = data
+    def __init__(self, data, **kwargs):
+        self.__data__ = dict(
+            data, kwargs=dict(data.get("kwargs", {}), **kwargs)
+        )
+        #self.__data__ = data
+        #self.__data__.setdefault("kwargs", {}).update(**kwargs)
 
     def __getitem__(self, name):
         return self.__data__[name]
@@ -59,7 +63,7 @@ class Object(object, metaclass=Type):
     def get(self, *args):
         return self.__data__.get(*args)
 
-    def getItem(self, *args):
+    def getItem(self, *args, **kwargs):
         raise NotImplementedError
 
 
@@ -70,11 +74,13 @@ class List(list):
 
     __ctor__ = Object
 
-    def __init__(self, items, category=None, content="videos"):
-        super(List, self).__init__(self.__ctor__(item) for item in items)
+    def __init__(self, items, category=None, content="videos", **kwargs):
+        super(List, self).__init__(
+            self.__ctor__(item, **kwargs) for item in items
+        )
         self.category = category
         self.content = content
 
-    def getItems(self, *args):
-        return (item.getItem(*args) for item in self if item)
+    def getItems(self, *args, **kwargs):
+        return (item.getItem(*args, **kwargs) for item in self if item)
 

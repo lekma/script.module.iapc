@@ -5,21 +5,21 @@ __all__ = ["dumpObject", "loadObject", "Persistent", "save"]
 
 
 from pathlib import Path
-from pickle import dump, load
+from json import dump, load
 
 from .addon import getAddonProfile
 
 
-# pickle -----------------------------------------------------------------------
+# json -------------------------------------------------------------------------
 
 def dumpObject(obj, path):
-    with path.open("wb+") as f:
-        dump(obj, f, -1)
+    with path.open("w+") as f:
+        dump(obj, f)
 
 
 def loadObject(path, default=None):
     if path.exists():
-        with path.open("rb") as f:
+        with path.open("r") as f:
             return load(f)
     return default
 
@@ -39,28 +39,20 @@ def save(func):
 class Persistent(object):
 
     def __init_subclass__(cls, **kwargs):
-        cls.__loading__ = False
         cls.__path__ = Path(
             getAddonProfile(),
-            getattr(cls, "__pickle__", f"{cls.__name__.lower()}.pickle")
+            getattr(cls, "__filename__", f"{cls.__name__.lower()}.json")
         )
         super(Persistent, cls).__init_subclass__(**kwargs)
-
-    def __new__(cls, *args, **kwargs):
-        if not cls.__path__.exists() or cls.__loading__:
-            return super(Persistent, cls).__new__(cls, *args, **kwargs)
-        cls.__loading__ = True
-        try:
-            with cls.__path__.open("rb") as f:
-                return load(f)
-        finally:
-            cls.__loading__ = False
 
     def __init__(self, *args, **kwargs):
         if not self.__path__.exists():
             super(Persistent, self).__init__(*args, **kwargs)
+        else:
+            with self.__path__.open("r") as f:
+                super(Persistent, self).__init__(load(f))
 
     def __save__(self):
-        with self.__path__.open("wb+") as f:
-            dump(self, f, -1)
+        with self.__path__.open("w+") as f:
+            dump(self, f)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-__all__ = ["public", "Service", "Client"]
+__all__ = ["public", "Service", "RequestError", "Client"]
 
 
 from json import loads
