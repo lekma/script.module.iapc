@@ -3,7 +3,8 @@
 
 __all__ = [
     "getWindowId", "ICONINFO", "ICONWARNING", "ICONERROR", "notify",
-    "selectDialog", "inputDialog", "contextMenu", "browseDialog", "browseFiles",
+    "selectDialog", "inputDialog", "contextMenu",
+    "browseDialog", "browseFiles", "infoDialog",
     "ListItem"
 ]
 
@@ -62,6 +63,12 @@ def browseDialog(_type_, heading=getAddonName(), source="", multi=False, **kwarg
 
 def browseFiles(**kwargs):
     return browseDialog(1, **kwargs)
+
+
+# info -------------------------------------------------------------------------
+
+def infoDialog(item):
+    return xbmcgui.Dialog().info(item)
 
 
 # listitem ---------------------------------------------------------------------
