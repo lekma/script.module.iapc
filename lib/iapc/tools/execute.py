@@ -15,8 +15,8 @@ import xbmc
 
 # executeBuiltin ---------------------------------------------------------------
 
-def executeBuiltin(function, *args):
-    xbmc.executebuiltin(f"{function}({','.join(args)})")
+def executeBuiltin(function, *args, wait=False):
+    xbmc.executebuiltin(f"{function}({','.join(args)})", wait)
 
 
 # executeJSONRPC ---------------------------------------------------------------
@@ -48,20 +48,20 @@ def executeJSONRPC(method, **params):
 # misc execute utils -----------------------------------------------------------
 
 # containerRefresh
-def containerRefresh(*args):
-    executeBuiltin("Container.Refresh", *args)
+def containerRefresh(*args, **kwargs):
+    executeBuiltin("Container.Refresh", *args, **kwargs)
 
 # containerUpdate
-def containerUpdate(*args):
-    executeBuiltin("Container.Update", *args)
+def containerUpdate(*args, **kwargs):
+    executeBuiltin("Container.Update", *args, **kwargs)
 
 # playMedia
-def playMedia(*args):
-    executeBuiltin("PlayMedia", *args)
+def playMedia(*args, **kwargs):
+    executeBuiltin("PlayMedia", *args, **kwargs)
 
 # runScript
-def runScript(*args):
-    executeBuiltin("RunScript", *args)
+def runScript(*args, **kwargs):
+    executeBuiltin("RunScript", *args, **kwargs)
 
 # addFavourite
 def addFavourite(title, type, **kwargs):
