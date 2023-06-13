@@ -5,7 +5,8 @@ __all__ = [
     "getAddonId", "getAddonName", "getAddonVersion",
     "getAddonPath", "getAddonIcon", "getAddonProfile",
     "getLanguage", "localizedString", "maybeLocalize",
-    "getMediaPath", "getMedia", "makeProfile",
+    "getMediaPath", "getMedia",
+    "pathExists", "profileExists", "makeProfile",
     "openSettings", "getSetting", "setSetting",
     "Logger"
 ]
@@ -55,19 +56,28 @@ def maybeLocalize(value):
     return value
 
 
-__media_path__ = join(getAddonPath(), "resources", "media")
+__media_path__ = join("resources", "media")
 
 def getMediaPath(*args):
-    return join(__media_path__, *args)
+    return join(getAddonPath(), __media_path__, *args)
 
 
 def getMedia(name, ext="png"):
     return getMediaPath(f"{name}.{ext}")
 
 
+def pathExists(path):
+    return xbmcvfs.exists(path)
+
+
+def profileExists():
+    return pathExists(getAddonProfile())
+
+
 def makeProfile():
-    if not xbmcvfs.exists(profile := getAddonProfile()):
-        xbmcvfs.mkdirs(profile)
+    if not pathExists(profile := getAddonProfile()):
+        return xbmcvfs.mkdirs(profile)
+    return False
 
 
 # settings ---------------------------------------------------------------------

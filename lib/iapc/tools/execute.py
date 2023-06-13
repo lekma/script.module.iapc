@@ -3,7 +3,8 @@
 
 __all__ = [
     "executeBuiltin", "executeJSONRPC",
-    "containerRefresh", "containerUpdate", "playMedia", "addFavourite"
+    "containerRefresh", "containerUpdate", "playMedia", "runScript",
+    "addFavourite"
 ]
 
 
@@ -58,7 +59,10 @@ def containerUpdate(*args):
 def playMedia(*args):
     executeBuiltin("PlayMedia", *args)
 
+# runScript
+def runScript(*args):
+    executeBuiltin("RunScript", *args)
+
 # addFavourite
 def addFavourite(title, type, **kwargs):
     executeJSONRPC("Favourites.AddFavourite", title=title, type=type, **kwargs)
-
