@@ -14,9 +14,10 @@ from .tools import Logger, getAddonVersion, parseQuery
 
 # http -------------------------------------------------------------------------
 
-def http(path=None):
+def http(path=None, command="GET"):
     def decorator(func):
-        func.__http__ = path or f"/{func.__name__}"
+        func.__http_path__ = path or f"/{func.__name__}"
+        func.__http_command__ = command
         return func
     return decorator
 
@@ -121,14 +122,16 @@ class Server(HTTPServer):
             if (
                 (not name.startswith("_")) and
                 (callable(method := getattr(obj, name))) and
-                ((path := getattr(method, "__http__", "")).startswith("/"))
+                ((path := getattr(method, "__http_path__", "")).startswith("/"))
             ):
-                yield path, method
+                yield (path, method.__http_command__, method)
 
     def __init__(self, id, timeout=-1):
         self.logger = Logger(id, component="httpd")
         self.timeout = None if timeout < 0 else timeout
-        self.methods = {k: v for k, v in self.__methods__(self)}
+        self.methods = {}
+        for path, command, method in self.__methods__(self):
+            self.methods.setdefault(path, {})[command] = method
         RequestHandler.server_version = f"{id}/{getAddonVersion()}"
         super(Server, self).__init__(self.__localhost__(), RequestHandler)
         self.logger.info(f"started on: {self.server_address}")
@@ -142,7 +145,10 @@ class Server(HTTPServer):
     def execute(self, request):
         url = urlparse(request.path)
         try:
-            method = self.methods[url.path]
+            try:
+                method = self.methods[url.path][request.command]
+            except KeyError:
+                method = self.methods[url.path]["GET"]
         except KeyError:
             request.send_error(404)
         else:
