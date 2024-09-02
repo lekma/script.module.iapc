@@ -2,34 +2,22 @@
 
 
 __all__ = [
-    "getWindowId", "ICONINFO", "ICONWARNING", "ICONERROR", "notify",
-    "selectDialog", "inputDialog", "contextMenu",
-    "browseDialog", "browseFiles", "infoDialog",
-    "ListItem"
+    "getWindowId", "selectDialog", "inputDialog", "contextMenu",
+    "browseDialog", "browseFiles", "infoDialog", "ListItem"
 ]
 
 
 import xbmc, xbmcgui
 
-from .addon import getAddonName, getAddonIcon, maybeLocalize
+from .addon import (
+    getAddonName, getAddonIcon, maybeLocalize, LOGINFO, LOGWARNING, LOGERROR
+)
 
 
 # getWindowId ------------------------------------------------------------------
 
 def getWindowId():
     return xbmcgui.getCurrentWindowId()
-
-
-# notify -----------------------------------------------------------------------
-
-ICONINFO = xbmcgui.NOTIFICATION_INFO
-ICONWARNING = xbmcgui.NOTIFICATION_WARNING
-ICONERROR = xbmcgui.NOTIFICATION_ERROR
-
-def notify(message, heading=getAddonName(), icon=getAddonIcon(), time=5000):
-    xbmcgui.Dialog().notification(
-        maybeLocalize(heading), maybeLocalize(message), icon=icon, time=time
-    )
 
 
 # select -----------------------------------------------------------------------

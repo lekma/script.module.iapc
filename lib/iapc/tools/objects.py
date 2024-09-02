@@ -75,9 +75,9 @@ class List(list):
     __ctor__ = Object
 
     def __init__(self, items, category=None, content=None, **kwargs):
-        super(List, self).__init__(
-            self.__ctor__(item, **kwargs) for item in items
-        )
+        if self.__ctor__:
+            items = (self.__ctor__(item, **kwargs) for item in items)
+        super(List, self).__init__(items)
         self.category = category
         self.content = content
 

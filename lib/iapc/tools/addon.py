@@ -8,13 +8,14 @@ __all__ = [
     "getMediaPath", "getMedia",
     "pathExists", "profileExists", "makeProfile",
     "openSettings", "getSetting", "setSetting",
-    "Logger"
+    "ICONINFO", "ICONWARNING", "ICONERROR", "notify",
+    "LOGDEBUG", "LOGINFO", "LOGWARNING", "LOGERROR", "Logger"
 ]
 
 
 from os.path import join
 
-import xbmc, xbmcaddon, xbmcvfs
+import xbmc, xbmcaddon, xbmcgui, xbmcvfs
 
 
 # addon infos ------------------------------------------------------------------
@@ -112,15 +113,38 @@ def setSetting(id, value, _type_=None):
     return xbmcaddon.Addon().setSetting(id, value)
 
 
+# notify -----------------------------------------------------------------------
+
+ICONINFO = xbmcgui.NOTIFICATION_INFO
+ICONWARNING = xbmcgui.NOTIFICATION_WARNING
+ICONERROR = xbmcgui.NOTIFICATION_ERROR
+
+def notify(message, heading=getAddonName(), icon=getAddonIcon(), time=5000):
+    xbmcgui.Dialog().notification(
+        maybeLocalize(heading), maybeLocalize(message), icon=icon, time=time
+    )
+
+
 # ------------------------------------------------------------------------------
 # Logger
 
+LOGDEBUG=xbmc.LOGDEBUG
+LOGINFO=xbmc.LOGINFO
+LOGWARNING=xbmc.LOGWARNING
+LOGERROR=xbmc.LOGERROR
+
+__icons__ = {
+    LOGINFO: ICONINFO,
+    LOGWARNING: ICONWARNING,
+    LOGERROR: ICONERROR
+}
+
 class Logger(object):
 
-    DEBUG=xbmc.LOGDEBUG
-    INFO=xbmc.LOGINFO
-    WARNING=xbmc.LOGWARNING
-    ERROR=xbmc.LOGERROR
+    DEBUG=LOGDEBUG
+    INFO=LOGINFO
+    WARNING=LOGWARNING
+    ERROR=LOGERROR
 
     def __init__(self, id=None, component=""):
         self.id = id or getAddonId()
@@ -130,20 +154,25 @@ class Logger(object):
             f"{f'<{self.component}> ' if self.component else ''}"
         )
 
-    def __log__(self, message, level):
+    def __notify__(self, message, level):
+        notify(message, icon=__icons__[level])
+
+    def __log__(self, message, level, notify=False):
         xbmc.log(f"{self.__prefix__}{message}", level=level)
+        if notify:
+            self.__notify__(message, level)
 
     def debug(self, message):
         self.__log__(message, self.DEBUG)
 
-    def info(self, message):
-        self.__log__(message, self.INFO)
+    def info(self, message, notify=False):
+        self.__log__(message, self.INFO, notify=notify)
 
-    def warning(self, message):
-        self.__log__(message, self.WARNING)
+    def warning(self, message, notify=False):
+        self.__log__(message, self.WARNING, notify=notify)
 
-    def error(self, message):
-        self.__log__(message, self.ERROR)
+    def error(self, message, notify=False):
+        self.__log__(message, self.ERROR, notify=notify)
 
     def getLogger(self, component=""):
         if component == self.component:

@@ -9,6 +9,7 @@ from functools import wraps
 import xbmcplugin
 
 from .addon import maybeLocalize, Logger
+from .execute import executeBuiltin
 from .objects import List
 
 
@@ -17,7 +18,10 @@ __invalid_action__ = "Invalid action '{}'"
 
 # action -----------------------------------------------------------------------
 
-def action(action=None, category=None, content=None, directory=True):
+def action(
+    action=None, category=None, content=None,
+    directory=True, cacheToDisc=True, view=0
+):
     def decorator(func):
         func.__action__ = True
         @wraps(func)
@@ -33,7 +37,9 @@ def action(action=None, category=None, content=None, directory=True):
                 raise error
             finally:
                 if directory:
-                    self.endDirectory(success)
+                    self.endDirectory(success, cacheToDisc=cacheToDisc)
+                    if view:
+                        executeBuiltin("Container.SetViewMode", f"{view}")
                 self.__content__ = None
                 self.__category__ = None
                 self.action = None
@@ -97,13 +103,15 @@ class Plugin(object):
                 self.__content__ = content
         return self.addItems(items, *args, **kwargs)
 
-    def endDirectory(self, success):
+    def endDirectory(self, success, updateListing=False, cacheToDisc=True):
         if success:
             if self.__content__:
                 xbmcplugin.setContent(self.__handle__, self.__content__)
             if self.__category__:
                 xbmcplugin.setPluginCategory(self.__handle__, self.__category__)
-        xbmcplugin.endOfDirectory(self.__handle__, success)
+        xbmcplugin.endOfDirectory(
+            self.__handle__, success, updateListing, cacheToDisc
+        )
 
     def playItem(self, item, mimeType=None):
         if mimeType:
