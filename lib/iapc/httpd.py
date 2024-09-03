@@ -9,7 +9,7 @@ from socket import socket, AF_INET, SOCK_STREAM, SHUT_RDWR
 from traceback import format_exc
 from urllib.parse import urlparse
 
-from .tools import Logger, getAddonVersion, parseQuery
+from nuttig import Logger, getAddonVersion, parseQuery
 
 
 # http -------------------------------------------------------------------------
@@ -126,8 +126,10 @@ class Server(HTTPServer):
             ):
                 yield (path, method.__http_command__, method)
 
-    def __init__(self, id, timeout=-1):
-        self.logger = Logger(id, component="httpd")
+    def __init__(self, id, logger=None, timeout=-1):
+        component = ["httpd"]
+        if logger: component.insert(0, logger.component)
+        self.logger = Logger(id, component=".".join(component))
         self.timeout = None if timeout < 0 else timeout
         self.methods = {}
         for path, command, method in self.__methods__(self):

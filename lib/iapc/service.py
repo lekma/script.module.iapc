@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
 
-__all__ = ["public", "Service", "RequestError", "Client"]
+__all__ = ["public", "Service"]
 
 
 from json import loads
 from traceback import format_exc
-from uuid import uuid4
 
 import xbmc
 
-from .tools import executeJSONRPC, getAddonId, Logger
+from nuttig import executeJSONRPC, getAddonId, Logger
 
 
 # ------------------------------------------------------------------------------
@@ -47,8 +46,8 @@ class Service(Monitor):
             ):
                 yield f"{key}.{name}" if key else name, method
 
-    def __init__(self, id=None):
-        self.id = id or getAddonId()
+    def __init__(self):
+        self.id = getAddonId()
         self.logger = Logger(self.id, component="service")
         self.methods = {}
 
@@ -81,72 +80,3 @@ class Service(Monitor):
     def onNotification(self, sender, method, data):
         if sender == self.id:
             self.send(method.split(".", 1)[1], sender, self.execute(data))
-
-
-# ------------------------------------------------------------------------------
-# Client
-
-class RequestError(Exception):
-
-    def __init__(self, message="unknown request error"):
-        super(RequestError, self).__init__(message)
-
-
-class Request(Monitor):
-
-    def __init__(self, id):
-        self.id = id
-        self.message = uuid4().hex
-        self.response = RequestError()
-        self.ready = False
-
-    def execute(self, request):
-        self.send(self.id, self.message, request)
-        while not self.ready:
-            if self.waitForAbort(0.1):
-                self.response = RequestError("request aborted")
-                break
-        if isinstance(self.response, Exception):
-            raise self.response
-        return self.response
-
-    def handle(self, response):
-        try:
-            response = loads(response)
-            try:
-                self.response = response["result"]
-            except KeyError:
-                self.response = RequestError(
-                    f"remote error\n{response['error']}"
-                )
-        except Exception as error:
-            self.response = error
-        finally:
-            self.ready = True
-
-    def onNotification(self, sender, method, data):
-        if sender == self.message and method.split(".", 1)[1] == self.id:
-            self.handle(data)
-
-
-class Attribute(object):
-
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-
-    def __getattr__(self, name):
-        return Attribute(self.id, f"{self.name}.{name}")
-
-    def __call__(self, *args, **kwargs):
-        return Request(self.id).execute((self.name, args, kwargs))
-
-
-class Client(object):
-
-    def __init__(self, id=None):
-        self.id = id or getAddonId()
-
-    def __getattr__(self, name):
-        return Attribute(self.id, name)
-

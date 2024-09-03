@@ -2,7 +2,7 @@
 
 
 from .service import *
+from .client import *
 from .httpd import *
 
-del service, httpd
-
+del service, client, httpd
