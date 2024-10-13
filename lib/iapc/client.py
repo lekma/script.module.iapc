@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from nuttig import addonIsEnabled, getAddonId
 
-from .service import Monitor
+from .monitor import Monitor
 
 
 # ------------------------------------------------------------------------------
@@ -84,10 +84,19 @@ class Attribute(object):
 
 class Client(object):
 
+    #def __init__(self, id=None, register=False):
+    #    if id and (not addonIsEnabled(id)):
+    #        raise AddonNotAvailable(id)
+    #    self.__id__ = getAddonId()
+    #    self.id = id or self.__id__
+    #    if register and (self.id != self.__id__):
+    #        self.__registerWatcher__(self.__id__)
+
     def __init__(self, id=None):
         if id and (not addonIsEnabled(id)):
             raise AddonNotAvailable(id)
-        self.id = id or getAddonId()
+        self.__id__ = getAddonId()
+        self.id = id or self.__id__
 
     def __getattr__(self, name):
         return Attribute(self.id, name)
