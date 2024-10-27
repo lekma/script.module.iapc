@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-__all__ = ["http", "Server"]
+__all__ = ["http", "Server", "RequestHandler"]
 
 
 from http.server import BaseHTTPRequestHandler, HTTPServer, HTTPStatus
@@ -27,11 +27,11 @@ def http(path=None, command="GET"):
 
 class RequestHandler(BaseHTTPRequestHandler):
 
-    def log_error(self, format, *args):
-        self.server.logger.error(format % args)
+    def log_error(self, message, *args):
+        self.server.logger.error(message % args)
 
-    def log_message(self, format, *args):
-        self.server.logger.info(format % args)
+    def log_message(self, message, *args):
+        self.server.logger.info(message % args)
 
     def end_headers(self):
         self.send_header("X-Clacks-Overhead", "GNU Terry Pratchett")
@@ -51,10 +51,11 @@ class RequestHandler(BaseHTTPRequestHandler):
             log = f"{log}\n{explain}"
         else:
             explain = longmsg
+        log = log.replace("%", "%%")
         if code >= 400:
-            self.server.logger.error(log)
+            self.log_error(log)
         else:
-            self.server.logger.info(log)
+            self.log_message(log)
         self.send_response_only(code, message)
         self.send_header("Server", self.version_string())
         self.send_header("Date", self.date_time_string())
@@ -126,7 +127,7 @@ class Server(HTTPServer):
             ):
                 yield (path, method.__http_command__, method)
 
-    def __init__(self, id, logger=None, timeout=-1):
+    def __init__(self, id, logger=None, timeout=-1, handler=RequestHandler):
         component = ["httpd"]
         if logger: component.insert(0, logger.component)
         self.logger = Logger(id, component=".".join(component))
@@ -134,8 +135,8 @@ class Server(HTTPServer):
         self.methods = {}
         for path, command, method in self.__methods__(self):
             self.methods.setdefault(path, {})[command] = method
-        RequestHandler.server_version = f"{id}/{getAddonVersion()}"
-        super(Server, self).__init__(self.__localhost__(), RequestHandler)
+        handler.server_version = f"{id}/{getAddonVersion()}"
+        super(Server, self).__init__(self.__localhost__(), handler)
         self.logger.info(f"started on: {self.server_address}")
 
     def server_close(self):
